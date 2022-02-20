@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="de" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Hangman v3</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://unpkg.com/navigo"></script>
+
+
+    <script type="text/javascript" src="js/main.js"></script>
+    <script type="text/javascript" src="js/game.js"></script>
+    <script type="text/javascript" src="js/word_analyser.js"></script>
+    <script type="text/javascript" src="js/history_manager.js"></script>
+    <script type="text/javascript" src="js/word_manager.js"></script>
+    <script type="text/javascript" src="js/extras.js"></script>
+    <script type="text/javascript" src="js/dom.js"></script>
+    <script type="text/javascript" src="js/routing.js"></script>
+    <script type="text/javascript" src="js/vue_handler.js"></script>
+    <script type="text/javascript" src="js/all_words.js"></script>
+
+
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700i" rel="stylesheet">
+
+  </head>
+  <body>
+    <div id="app">
+      <div id="start">
+        <div class="number_picker">
+          <h1>Galgenmännchen</h1>
+          <h3>Wähle die Wortlänge: </h3>
+
+          <button class="number_adder" onclick="add_word_length(-1)">-</button>
+
+          <h2 id="output_word_length"></h2>
+
+          <button class="number_adder" onclick="add_word_length(1)">+</button>
+
+          <h4>Buchstaben</h4>
+
+        </div>
+        <button id="button_play_game" onclick="router.navigate('/play/');">Starten</button>
+        <!-- Loading spinner -->
+        <div id="loading_spinner" class="sk-chase">
+          <div class="sk-chase-dot"></div>
+          <div class="sk-chase-dot"></div>
+          <div class="sk-chase-dot"></div>
+          <div class="sk-chase-dot"></div>
+          <div class="sk-chase-dot"></div>
+          <div class="sk-chase-dot"></div>
+        </div>
+      </div>
+      <div id="play">
+        <button class="restart_game" onclick="router.navigate('/start/')" title="Neu starten">&#11119;</button>
+
+        <h3>Ist ein <span class="highlighted">{{prediction_char}}</span> im Wort?</h3>
+
+        <input v-on:click="char_clicked" v-for="character_index in word_length" class="input_char" :key="character_index" :placeholder="'(' + [[character_index]] + ')'" :data-char_index="[[character_index - 1]]" readonly></input>
+
+        <br>
+
+        <button v-show="game.timesguessed>1" class="button_step_back" onclick="game.history_manager.step_back();" title="Einen Schritt zurück">&#8249;</button>
+        <button v-show="wordHasNoChar" v-on:click="proceed_without_selection" title="Dieser Buchstabe kommt nicht im Wort vor">Kein <span class="highlighted">{{prediction_char}}</span> im Wort</button>
+        <button v-show="!wordHasNoChar" v-on:click="all_chars_selected" title="Weiter">Weiter</button>
+
+
+        <div id="sidebar">
+          <p>Es wurde schon {{game.timesguessed}} mal geraten. <span v-if="game.has_started">Es sind noch {{game.manager.remaining_words.length}} Worte übrig. </span></p>
+          <h4 v-if="game.wrong_chars.length>0">[{{game.wrong_chars.length}}] Falsch geratene Buchstaben: <br><span class="wrong_char" v-for="char in game.wrong_chars">{{char}}</span></h4>
+          <!-- <p>Ich werde noch maximal {{game.estimated_moves_left}} Züge brauchen, um das Wort zu erraten. </p> -->
+        </div>
+
+
+        <div id="leftside">
+          <div class="analysis_character" v-for="character in analysis" :data-character-char="[[character.character]]" v-on:click="change_char">
+            <div class="character_self">{{character.character}}</div>
+            <div class="character_frequency">{{Math.round(character.frequency * 100)}}%</div>
+            <div class="character_score">{{(Math.round(character.information * 100) / 100).toFixed(2)}}</div>
+          </div>
+        </div>
+
+        <div id="rightside">
+          <div class="remaining_word_holder" v-for="word in remaining_words">{{word}}</div>
+        </div>
+      </div>
+      <div id="finish">
+        <h3>Letztes Wort übrig</h3>
+        <h2>Lautet dein Wort <span class="highlighted">{{last_word}}</span>?</h2>
+
+        <button onclick="router.navigate('/start/')">Neu starten</button>
+      </div>
+
+      <div id="notfound">
+        <h3>Kein passendes Wort gefunden</h3>
+
+        <button onclick="router.navigate('/start/')">Neu starten</button>
+      </div>
+    </div>
+  </body>
+</html>
